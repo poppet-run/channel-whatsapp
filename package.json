@@ -1,0 +1,33 @@
+{
+  "name": "@poppet/channel-whatsapp",
+  "version": "0.0.0",
+  "private": true,
+  "description": "WhatsApp channel for Poppet's messaging gateway.",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "imports": {
+    "#src/*": "./src/*.ts"
+  },
+  "exports": {
+    "./registration": "./src/registration.ts"
+  },
+  "scripts": {
+    "typecheck": "bun check",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "baileys": "7.0.0-rc14"
+  },
+  "peerDependencies": {
+    "@poppet/gateway": "*",
+    "effect": "4.0.4"
+  },
+  "peerDependenciesMeta": {
+    "@poppet/gateway": {
+      "optional": true
+    },
+    "effect": {
+      "optional": true
+    }
+  }
+}

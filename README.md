@@ -59,7 +59,7 @@ the same linked device, and WhatsApp allows one connection per device.
    again replaces the previous link.
 
    ```fish
-   poppet gateway whatsapp link <linked-phone-number>
+   poppet gateway whatsapp link --phone-number <linked-phone-number>
    ```
 
 2. For a group, add the linked number to it, then find the group's JID:
@@ -71,7 +71,7 @@ the same linked device, and WhatsApp allows one connection per device.
 3. Save the owner and chat, and start the worker:
 
    ```fish
-   poppet gateway whatsapp setup <owner-phone-number> <owner-phone-number-or-group-jid>
+   poppet gateway whatsapp setup --owner-id <owner-phone-number> --chat-id <owner-phone-number-or-group-jid>
    poppet gateway work
    ```
 

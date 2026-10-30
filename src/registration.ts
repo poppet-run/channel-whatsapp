@@ -1,12 +1,42 @@
+import { parseArgs } from "node:util";
+
 import { ChannelEnvironment, ChannelError, type ChannelRegistration } from "@poppet/gateway";
 import { Console, Effect, Schema } from "effect";
 
 import { PhoneNumber, WhatsAppSettings, authDirectory, whatsappSettings } from "#src/settings";
 
-const usage =
-  "Use gateway whatsapp link <phone-number>, gateway whatsapp groups, or gateway whatsapp setup <owner-phone-number> <chat-id>.";
+const setupHelp =
+  "link --phone-number <phone-number> | groups | setup --owner-id <owner-phone-number> --chat-id <chat-id>";
+
+const usage = `Use gateway whatsapp ${setupHelp}.`;
 
 const configuration = (message: string) => new ChannelError({ reason: "configuration", message });
+
+const parseCommand = (args: ReadonlyArray<string>) =>
+  Effect.try({
+    try: () => {
+      const command = args[0];
+      if (command !== "link" && command !== "groups" && command !== "setup")
+        throw new Error("Expected link, groups, or setup");
+
+      const required =
+        command === "link" ? ["phone-number"] : command === "setup" ? ["owner-id", "chat-id"] : [];
+      const { values, tokens } = parseArgs({
+        args: args.slice(1),
+        options: Object.fromEntries(required.map((name) => [name, { type: "string" as const }])),
+        strict: true,
+        allowPositionals: false,
+        tokens: true,
+      });
+
+      const names = tokens.filter((token) => token.kind === "option").map((token) => token.name);
+      if (names.length !== required.length || new Set(names).size !== required.length)
+        throw new Error("Expected each flag exactly once");
+
+      return { command, values };
+    },
+    catch: () => configuration(usage),
+  });
 
 const link = (dataDirectory: string, phoneNumber: string) =>
   Effect.gen(function* () {
@@ -87,19 +117,17 @@ const setup = (dataDirectory: string, ownerId: string, chatId: string) =>
 export const whatsapp: ChannelRegistration = {
   id: "whatsapp",
   name: "WhatsApp",
-  setupHelp: "link <phone-number> | groups | setup <owner-phone-number> <chat-id>",
+  setupHelp,
   setup: (args) =>
     Effect.gen(function* () {
+      const { command, values } = yield* parseCommand(args);
       const { dataDirectory } = yield* ChannelEnvironment;
 
-      if (args[0] === "link" && args.length === 2) return yield* link(dataDirectory, args[1]!);
+      if (command === "link") return yield* link(dataDirectory, values["phone-number"]!);
 
-      if (args[0] === "groups" && args.length === 1) return yield* groups(dataDirectory);
+      if (command === "groups") return yield* groups(dataDirectory);
 
-      if (args[0] === "setup" && args.length === 3)
-        return yield* setup(dataDirectory, args[1]!, args[2]!);
-
-      return yield* Effect.fail(configuration(usage));
+      return yield* setup(dataDirectory, values["owner-id"]!, values["chat-id"]!);
     }),
   load: whatsappSettings.loader((settings, dataDirectory) =>
     Promise.all([import("#src/channel"), import("#src/socket")]).then(

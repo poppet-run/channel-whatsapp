@@ -12,11 +12,20 @@
     "./registration": "./src/registration.ts"
   },
   "scripts": {
-    "typecheck": "bun check",
-    "test": "bun test"
+    "typecheck": "bun --check",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "test": "bun test",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test"
   },
   "dependencies": {
     "baileys": "7.0.0-rc14"
+  },
+  "devDependencies": {
+    "oxfmt": "0.75.0",
+    "oxlint": "1.90.0"
   },
   "peerDependencies": {
     "@poppet/gateway": "*",
@@ -29,5 +38,6 @@
     "effect": {
       "optional": true
     }
-  }
+  },
+  "packageManager": "bun@1.4.4"
 }

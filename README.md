@@ -97,10 +97,18 @@ worker after changing either.
 ## Development
 
 The package resolves `@poppet/gateway` and `effect` from the sibling Poppet
-checkout through `tsconfig.json` paths. Only Baileys is installed here.
+checkout through `tsconfig.json` paths. Install the sibling checkout first.
+Bun 1.4.4 is pinned in `mise.toml`; formatting and linting use oxfmt and oxlint,
+matching Poppet.
 
 ```fish
-bun install
-bun check
-bun test
+bun install --cwd ../poppet --frozen-lockfile
+bun install --frozen-lockfile
+bun run check
 ```
+
+CI runs on pull requests and pushes to `main`. The shared lint workflow runs
+`format:check`, `lint`, and `typecheck`; the shared test workflow runs `test`.
+Both check out Poppet main alongside this package to check the current gateway
+interface. The shared workflows and Poppet are public, so this private repository
+needs no cross-repository token or secrets.

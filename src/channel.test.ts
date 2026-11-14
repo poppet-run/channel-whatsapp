@@ -209,6 +209,33 @@ describe("whatsappChannelLayer", () => {
     });
   });
 
+  test.each([groupId, owner])(
+    "resolves %s through naming without managing the chat name",
+    async (chatId) => {
+      const socket = fakeSocket();
+      const message = { ...source, scopeId: chatId, parentId: chatId, conversationId: chatId };
+
+      const result = await run({ ownerId: owner, chatId }, socket, (channel) =>
+        Effect.gen(function* () {
+          const conversation = yield* channel.naming.conversation(message, "Suggested title");
+          const renamed = yield* channel.naming.rename(message, chatId, "Old title", "New title");
+          const outside = yield* channel.naming
+            .conversation({ ...message, senderId: "447700900999" }, "Suggested title")
+            .pipe(Effect.flip);
+
+          return { conversation, renamed, outside: outside.reason };
+        }),
+      );
+
+      expect(result).toEqual({
+        conversation: { id: chatId, managedName: null },
+        renamed: null,
+        outside: "permission",
+      });
+      expect(socket.sent).toEqual([]);
+    },
+  );
+
   test("reports a failed send as uncertain", async () => {
     const error = await run(inGroup, fakeSocket({ sendFailure: true }), (channel) =>
       channel.send(groupId, "Reply", "nonce").pipe(Effect.flip),

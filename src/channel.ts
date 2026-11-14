@@ -325,7 +325,6 @@ export const whatsappChannelLayer = (settings: WhatsAppSettings, connect: Connec
             try: () => target(conversationId),
             catch: (cause) => whatsappFailure(cause),
           }).pipe(Effect.andThen(request((current) => current.typing(chatJid)))),
-        conversation,
         // WhatsApp has no threads, so the chat is the only conversation and Poppet never names it.
         naming: {
           sanitize: (title) => title.trim(),
